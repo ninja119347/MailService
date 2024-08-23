@@ -5,10 +5,11 @@ import (
 	"admin-go-api/api/controller"
 	"admin-go-api/common/config"
 	"admin-go-api/middleware"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"net/http"
 )
 
 // 初始化路由
@@ -45,7 +46,6 @@ func register(router *gin.Engine) {
 	//auth.DELETE("/delete/user/:id", controller.DeleteUser)
 
 	//router.POST("/register", controller.AddUser)
-	router.GET("/api/captcha", controller.Captcha)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.POST("/api/login", controller.Login)
 	//router.PUT("/api/updateUser", controller.UpdateUser)

@@ -2,8 +2,9 @@
 package result
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 消息结构体
@@ -11,6 +12,13 @@ type Result struct {
 	Code int         `json:"err_code"` //状态码
 	Msg  string      `json:"err_msg"`  //提示信息
 	Data interface{} `json:"data"`     //返回的数据
+}
+
+// 邮件返回结构体
+type EmailResponse struct {
+	ErrCode int    `json:"err_code"`
+	ErrMsg  string `json:"err_msg"`
+	Code    string `json:"code"`
 }
 
 // 返回成功

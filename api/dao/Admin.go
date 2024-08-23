@@ -15,4 +15,12 @@ func CheckAppNameExists(appName string) (bool, error) {
 	return count > 0, nil
 }
 
+func GetEmailInfo() (email entity.Email, err error) {
+	err = db.Db.Model(&entity.Email{}).Where("id!=''").First(&email).Error
+	if err != nil {
+		return email, err
+	}
+	return email, err
+}
+
 // CreateUser saves a new user to the database

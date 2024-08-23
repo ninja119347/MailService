@@ -22,6 +22,10 @@ type Codes struct {
 	UpdateUserError uint
 	LoginOutOfTime  uint
 	APPNAMEERROR    uint
+	ERR_MAIL_SEND   uint
+	ERR_MAIL_PARAMS uint
+	ERR_MAIL_VCODE  uint
+	ERR_OK          uint
 }
 
 // ApiCode 状态码
@@ -44,6 +48,10 @@ var ApiCode = &Codes{
 	UpdateUserError: 418,
 	LoginOutOfTime:  419,
 	APPNAMEERROR:    420,
+	ERR_MAIL_SEND:   801,
+	ERR_MAIL_PARAMS: 802,
+	ERR_MAIL_VCODE:  803,
+	ERR_OK:          0,
 }
 
 func init() {

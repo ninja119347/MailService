@@ -1,18 +1,35 @@
 // 用户相关结构体
 package entity
 
+import "admin-go-api/common/util"
+
 // 用户模型对象
 type SysAdmin struct {
 	//gorm.Model
-	Series   string `json:"series" gorm:"column:Series;varchar(64);comment:'系列'"`
-	App_name string `json:"app_name" gorm:"column:App_name;varchar(64);comment:'app名称'"`
-	Type     string `json:"type" gorm:"column:Type;varchar(64);comment:'类型'"`
-	Owner    string `json:"owner" gorm:"column:Owner;varchar(64);comment:'拥有者'"`
-	//CreateTime util.HTime `json:"createTime" gorm:"column:create_time;comment:'创建时间'"`
+
+	Id int `json:"id" gorm:"column:id;int;comment:'Appid'"`
+
+	AppName string `json:"app_name" gorm:"column:AppName;varchar(64);comment:'app名称'"`
+
+	CreateTime util.HTime `json:"create_time" gorm:"column:CreateTime;comment:'app创建时间'"`
+
+	Description string `json:"description" gorm:"column:Description;varchar(500);comment:'app描述'"`
 }
 
 func (SysAdmin) TableName() string {
-	return "ota"
+	return "app"
+}
+
+// Email对象
+type Email struct {
+	Id            int    `json:"id" gorm:"column:id;int;comment:'EmailId'"`
+	Email         string `json:"email" gorm:"column:Email;varchar(100);comment:'email'"`
+	EmailPassword string `json:"emailPassword" gorm:"column:EmailPassword;varchar(200);comment:'emailPassword'"`
+	Host          string `json:"host" gorm:"column:Host;varchar(100);comment:'host'"`
+}
+
+func (Email) TableName() string {
+	return "sys"
 }
 
 // 鉴权用户结构体

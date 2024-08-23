@@ -5,30 +5,24 @@ server:
 #数据库配置
 db:
   dialects: mysql
-  host: 127.0.0.1
+  host: lfdbldsvr1.lenovo.com
   port: 3306
-  db: go-admin-api
+  db: mail_dev
   username: root
-  password: 119347
+  password: tuzi990531
   charset: utf8
   #最大空闲数
   maxIdle: 50
   #最大连接数
   maxOpen: 100
 
-#redis配置
-redis:
-  address: 127.0.0.1:6379
-  password:
-
-#picture配置
-imageSettings:
-  uploadDir: /admin-go-api/upload/
-  imageHost: http://localhost:2002
-
+# #redis配置
+# redis:
+#   address: 127.0.0.1:6379
+#   password:
 
 #log配置
 log:
-  path: /admin-go-api/log/
-  name: admin-go-api.log
+  path: log/
+  name: mailLog.log
   model: console
