@@ -16,12 +16,13 @@ type SendDto struct {
 	Users []string `json:"users" validate:"required,dive,email"` //目标用户邮箱
 	Bid   string   `json:"bid" validate:"required"`              //业务大类
 	Data  Data     `json:"data" validate:"required"`             //bid具体实现字段
+
 }
 
 type Data struct {
-	Type     string `json:"users" validate:"required,dive,email"` //目标用户邮箱
-	Language string `json:"bid" validate:"required"`              //业务大类
-	Content  string `json:"content"`                              //bid具体实现字段
+	Type     string `json:"type" validate:"required"`     //目标用户邮箱
+	Language string `json:"language" validate:"required"` //业务大类
+	Content  string `json:"content"`                      //bid具体实现字段
 }
 
 // 检查 UtraData 是否过期的函数

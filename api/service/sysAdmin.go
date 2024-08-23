@@ -52,7 +52,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 		result.Failed(c, uint(result.ApiCode.APPNAMEERROR), result.ApiCode.GetMessage(result.ApiCode.APPNAMEERROR))
 		return
 	}
-
+	//TODO APPId 解密
 	//生成token
 	tokenString, expireTime, _ := jwt.GenerateTokenByAdmin(dto)
 
@@ -131,7 +131,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		if SendMailApi(dto.Users, title, desc) {
 			// result.Success(c, map[string]interface{}{"code": ""})
 			response := result.EmailResponse{}
-			response.ErrCode = int(result.ApiCode.ERR_OK)
+			response.ErrCode = int(result.ApiCode.ERROK)
 			response.ErrMsg = "OK"
 			response.Code = ""
 			c.JSON(http.StatusOK, response)
@@ -144,7 +144,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 			// response.ErrMsg = "Send failed"
 			// response.Code = ""
 			response := result.EmailResponse{}
-			response.ErrCode = int(result.ApiCode.ERR_MAIL_SEND)
+			response.ErrCode = int(result.ApiCode.ERRMAILSEND)
 			response.ErrMsg = "Send failed"
 			response.Code = ""
 			c.JSON(http.StatusOK, response)
@@ -155,7 +155,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		// response.ErrMsg = "send content null"
 		// response.Code = ""
 		response := result.EmailResponse{}
-		response.ErrCode = int(result.ApiCode.ERR_MAIL_SEND)
+		response.ErrCode = int(result.ApiCode.ERRMAILSEND)
 		response.ErrMsg = "send content null"
 		response.Code = ""
 		c.JSON(http.StatusOK, response)

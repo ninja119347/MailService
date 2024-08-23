@@ -30,6 +30,14 @@ func AuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
+		//验证AppName一致
+		AppName := c.Request.Header.Get("L-APP-NAME")
+		if AppName != claims.App_name || AppName == "" {
+			//TODO 更改报错信息
+			result.Failed(c, result.ApiCode.FAILED, "这是一个错误")
+			c.Abort()
+			return
+		}
 		// 将用户信息存储在上下文中
 		c.Set(constant.ContexkeyUserObj, claims)
 		c.Next()

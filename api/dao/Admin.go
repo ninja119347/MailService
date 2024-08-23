@@ -8,7 +8,7 @@ import (
 
 func CheckAppNameExists(appName string) (bool, error) {
 	var count int64
-	err := db.Db.Model(&entity.SysAdmin{}).Where("app_name = ?", appName).Count(&count).Error
+	err := db.Db.Model(&entity.SysAdmin{}).Where("AppName = ?", appName).Count(&count).Error
 	if err != nil {
 		return false, err
 	}

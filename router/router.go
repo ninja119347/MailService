@@ -8,8 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // 初始化路由
@@ -38,7 +36,7 @@ func InitRouter() *gin.Engine {
 // 路由注册
 func register(router *gin.Engine) {
 	// 需要 JWT 验证的路由组
-	auth := router.Group("/authJwt")
+	auth := router.Group("")
 	auth.Use(middleware.AuthMiddleware())
 	auth.POST("/api/m/core/email", controller.Send)
 	// 其他需要 JWT 验证的接口
@@ -46,14 +44,14 @@ func register(router *gin.Engine) {
 	//auth.DELETE("/delete/user/:id", controller.DeleteUser)
 
 	//router.POST("/register", controller.AddUser)
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	//router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.POST("/api/login", controller.Login)
 	//router.PUT("/api/updateUser", controller.UpdateUser)
-	router.GET("/ping1", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	//router.GET("/ping1", func(c *gin.Context) {
+	//	c.JSON(200, gin.H{
+	//		"message": "pong",
+	//	})
+	//})
 
 	//router.POST("/api/register", controller.AddUser)
 

@@ -22,10 +22,10 @@ type Codes struct {
 	UpdateUserError uint
 	LoginOutOfTime  uint
 	APPNAMEERROR    uint
-	ERR_MAIL_SEND   uint
-	ERR_MAIL_PARAMS uint
-	ERR_MAIL_VCODE  uint
-	ERR_OK          uint
+	ERRMAILSEND     uint
+	ERRMAILPARAMS   uint
+	ERRMAILVCODE    uint
+	ERROK           uint
 }
 
 // ApiCode 状态码
@@ -48,10 +48,10 @@ var ApiCode = &Codes{
 	UpdateUserError: 418,
 	LoginOutOfTime:  419,
 	APPNAMEERROR:    420,
-	ERR_MAIL_SEND:   801,
-	ERR_MAIL_PARAMS: 802,
-	ERR_MAIL_VCODE:  803,
-	ERR_OK:          0,
+	ERRMAILSEND:     801,
+	ERRMAILPARAMS:   802,
+	ERRMAILVCODE:    803,
+	ERROK:           0,
 }
 
 func init() {
@@ -73,7 +73,9 @@ func init() {
 		ApiCode.DeleteUserError: "删除用户失败",
 		ApiCode.UpdateUserError: "更新用户失败",
 		ApiCode.LoginOutOfTime:  "登录超时",
-		ApiCode.APPNAMEERROR:    "应用名称错误",
+
+		ApiCode.APPNAMEERROR:  "header param error",
+		ApiCode.ERRMAILPARAMS: "param error",
 	}
 }
 

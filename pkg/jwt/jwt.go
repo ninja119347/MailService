@@ -60,7 +60,7 @@ func ValidateToken(tokenString string) (*entity.JwtAdmin, error) {
 		return nil, errors.New(ErrInValid)
 	}
 	claims := userStdClaims{}
-	_, err := jwt.ParseWithClaims(tokenString, &userStdClaims{}, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
