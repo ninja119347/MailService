@@ -3,78 +3,98 @@ package result
 
 // codes定义状态
 type Codes struct {
-	SUCCESS         uint
-	FAILED          uint
-	Message         map[uint]string
-	NOAUTH          uint
-	AUTHFORM        uint
-	ParamsFormError uint
-	LoginCodeExpire uint
-	CAPTCHANOTTRUE  uint
-	PASSWORDNOTTRUE uint
-	STATUSISENABLE  uint
-	USERDISABLED    uint
-	DatabaseError   uint
-	INVALIDTOKEN    uint
-	InvalidID       uint
-	UserNotExist    uint
-	DeleteUserError uint
-	UpdateUserError uint
-	LoginOutOfTime  uint
-	APPNAMEERROR    uint
-	ERRMAILSEND     uint
-	ERRMAILPARAMS   uint
-	ERRMAILVCODE    uint
-	ERROK           uint
+	SUCCESS  uint
+	FAILED   uint
+	Message  map[uint]string
+	NOAUTH   uint
+	AUTHFORM uint
+
+	LoginRequestBodyError uint
+	LoginIdError          uint
+	LoginUltraDataError   uint
+	LoginAppidError       uint
+	LoginAppnameError     uint
+
+	MailHeaderError        uint
+	MailTokenError         uint
+	MailAppnameError       uint
+	MailAppnameExistsError uint
+	MailUsersError         uint
+	MailBidError           uint
+	MailTypeError          uint
+	MailLanguageError      uint
+	MailAppnameBidError    uint
+	MailRequestBodyError   uint
+	MailContexError        uint
+
+	ERRMAILSEND   uint
+	ERRMAILPARAMS uint
+	ERRMAILVCODE  uint
+	ERROK         uint
 }
 
 // ApiCode 状态码
 var ApiCode = &Codes{
-	SUCCESS:         200,
-	FAILED:          501,
-	NOAUTH:          403,
-	AUTHFORM:        405,
-	ParamsFormError: 407,
-	LoginCodeExpire: 408,
-	CAPTCHANOTTRUE:  409,
-	PASSWORDNOTTRUE: 410,
-	STATUSISENABLE:  411,
-	USERDISABLED:    412,
-	DatabaseError:   413,
-	INVALIDTOKEN:    414,
-	InvalidID:       415,
-	UserNotExist:    416,
-	DeleteUserError: 417,
-	UpdateUserError: 418,
-	LoginOutOfTime:  419,
-	APPNAMEERROR:    420,
-	ERRMAILSEND:     801,
-	ERRMAILPARAMS:   802,
-	ERRMAILVCODE:    803,
-	ERROK:           0,
+	SUCCESS:  200,
+	FAILED:   501,
+	NOAUTH:   403,
+	AUTHFORM: 405,
+
+	LoginRequestBodyError: 406,
+	LoginIdError:          407,
+	LoginUltraDataError:   408,
+	LoginAppidError:       409,
+	LoginAppnameError:     410,
+
+	MailHeaderError:        411,
+	MailTokenError:         412,
+	MailAppnameError:       413,
+	MailAppnameExistsError: 414,
+
+	MailUsersError:       415,
+	MailBidError:         416,
+	MailTypeError:        417,
+	MailLanguageError:    418,
+	MailAppnameBidError:  419,
+	MailRequestBodyError: 420,
+	MailContexError:      421,
+
+	ERRMAILSEND:   801,
+	ERRMAILPARAMS: 802,
+	ERRMAILVCODE:  803,
+	ERROK:         0,
 }
 
 func init() {
 	ApiCode.Message = map[uint]string{
-		ApiCode.SUCCESS:         "OK",
-		ApiCode.FAILED:          "FAILED",
-		ApiCode.NOAUTH:          "请求头中token为空",
-		ApiCode.AUTHFORM:        "请求头中token格式有误",
-		ApiCode.ParamsFormError: "参数格式出错",
-		ApiCode.LoginCodeExpire: "验证码已过期",
-		ApiCode.CAPTCHANOTTRUE:  "验证码错误",
-		ApiCode.PASSWORDNOTTRUE: "密码错误",
-		ApiCode.STATUSISENABLE:  "状态启用",
-		ApiCode.USERDISABLED:    "用户已禁用",
-		ApiCode.DatabaseError:   "数据库错误",
-		ApiCode.INVALIDTOKEN:    "无效的token",
-		ApiCode.InvalidID:       "无效的ID",
-		ApiCode.UserNotExist:    "用户不存在",
-		ApiCode.DeleteUserError: "删除用户失败",
-		ApiCode.UpdateUserError: "更新用户失败",
-		ApiCode.LoginOutOfTime:  "登录超时",
+		ApiCode.SUCCESS:  "OK",
+		ApiCode.FAILED:   "FAILED",
+		ApiCode.NOAUTH:   "请求头中token为空",
+		ApiCode.AUTHFORM: "请求头中token格式有误",
 
-		ApiCode.APPNAMEERROR:  "header param error",
+		// 接口错误信息模糊化
+		ApiCode.LoginRequestBodyError: "invalid request body",
+
+		ApiCode.LoginIdError:        "request param error",
+		ApiCode.LoginUltraDataError: "request param error",
+		ApiCode.LoginAppidError:     "request param error",
+		ApiCode.LoginAppnameError:   "request param error",
+
+		ApiCode.MailHeaderError:        "invalid header",
+		ApiCode.MailTokenError:         "invalid header",
+		ApiCode.MailAppnameError:       "invalid header",
+		ApiCode.MailAppnameExistsError: "invalid header",
+
+		ApiCode.MailContexError: "service context error",
+		ApiCode.ERRMAILSEND:     "send failed",
+
+		ApiCode.MailUsersError:       "request param error",
+		ApiCode.MailBidError:         "request param error",
+		ApiCode.MailTypeError:        "request param error",
+		ApiCode.MailLanguageError:    "request param error",
+		ApiCode.MailAppnameBidError:  "request param error",
+		ApiCode.MailRequestBodyError: "request param error",
+
 		ApiCode.ERRMAILPARAMS: "param error",
 	}
 }

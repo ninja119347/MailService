@@ -7,9 +7,10 @@ import (
 	"admin-go-api/common/constant"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 type userStdClaims struct {
@@ -37,6 +38,7 @@ func GenerateTokenByAdmin(admin dto.LoginDto) (string, int64, error) {
 	claims := userStdClaims{
 		JwtAdmin,
 		jwt.StandardClaims{
+			//1800s
 			ExpiresAt: time.Now().Add(constant.TokenExpireDuration).Unix(), // 过期时间
 			Issuer:    "admin",                                             //签发人
 			IssuedAt:  time.Now().Unix(),                                   // 签发时间
@@ -86,14 +88,14 @@ func GetAdminId(c *gin.Context) (string, error) {
 }
 
 // 返回app_name
-func GetAdminName(c *gin.Context) (string, error) {
+func GetAppName(c *gin.Context) (string, error) {
 	u, exit := c.Get(constant.ContexkeyUserObj)
 	if !exit {
 		return "0", errors.New("can't get app name")
 	}
-	admin, ok := u.(*entity.JwtAdmin)
+	app, ok := u.(*entity.JwtAdmin)
 	if ok {
-		return admin.App_name, nil
+		return app.App_name, nil
 	}
 	return "0", errors.New("can't convert to name struct")
 }

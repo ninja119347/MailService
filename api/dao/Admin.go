@@ -6,6 +6,12 @@ import (
 	"admin-go-api/pkg/db"
 )
 
+const (
+	SIGN_KEY      = "Default"
+	UNIUPDATE_KEY = "0725#uni#UPDATE"
+	AIMONITOR_KEY = "#ai@monitor0725"
+)
+
 func CheckAppNameExists(appName string) (bool, error) {
 	var count int64
 	err := db.Db.Model(&entity.SysAdmin{}).Where("AppName = ?", appName).Count(&count).Error
@@ -22,5 +28,3 @@ func GetEmailInfo() (email entity.Email, err error) {
 	}
 	return email, err
 }
-
-// CreateUser saves a new user to the database

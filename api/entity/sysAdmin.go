@@ -6,14 +6,10 @@ import "admin-go-api/common/util"
 // 用户模型对象
 type SysAdmin struct {
 	//gorm.Model
-
-	Id int `json:"id" gorm:"column:id;int;comment:'Appid'"`
-
-	AppName string `json:"app_name" gorm:"column:AppName;varchar(64);comment:'app名称'"`
-
-	CreateTime util.HTime `json:"create_time" gorm:"column:CreateTime;comment:'app创建时间'"`
-
-	Description string `json:"description" gorm:"column:Description;varchar(500);comment:'app描述'"`
+	Id          int        `json:"id" gorm:"column:id;int;comment:'Appid'"`
+	AppName     string     `json:"app_name" gorm:"column:AppName;varchar(64);comment:'app名称'"`
+	CreateTime  util.HTime `json:"create_time" gorm:"column:CreateTime;comment:'app创建时间'"`
+	Description string     `json:"description" gorm:"column:Description;varchar(500);comment:'app描述'"`
 }
 
 func (SysAdmin) TableName() string {

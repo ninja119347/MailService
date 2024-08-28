@@ -9,9 +9,9 @@ import (
 
 // 消息结构体
 type Result struct {
-	Code int         `json:"err_code"` //状态码
-	Msg  string      `json:"err_msg"`  //提示信息
-	Data interface{} `json:"data"`     //返回的数据
+	ErrCode int         `json:"err_code"` //状态码
+	ErrMsg  string      `json:"err_msg"`  //提示信息
+	Data    interface{} `json:"data"`     //返回的数据
 }
 
 // 邮件返回结构体
@@ -27,8 +27,8 @@ func Success(c *gin.Context, data interface{}) {
 		data = gin.H{}
 	}
 	res := Result{}
-	res.Code = int(ApiCode.SUCCESS)
-	res.Msg = ApiCode.GetMessage(ApiCode.SUCCESS)
+	res.ErrCode = int(ApiCode.SUCCESS)
+	res.ErrMsg = ApiCode.GetMessage(ApiCode.SUCCESS)
 	res.Data = data
 	c.JSON(http.StatusOK, res)
 }
@@ -36,8 +36,26 @@ func Success(c *gin.Context, data interface{}) {
 // 返回失败
 func Failed(c *gin.Context, code uint, msg string) {
 	res := Result{}
-	res.Code = int(code)
-	res.Msg = msg
+	res.ErrCode = int(code)
+	res.ErrMsg = msg
 	res.Data = gin.H{}
+	c.JSON(http.StatusOK, res)
+}
+
+// 返回成功
+func SendSuccess(c *gin.Context) {
+	res := EmailResponse{}
+	res.ErrCode = int(ApiCode.SUCCESS)
+	res.ErrMsg = ApiCode.GetMessage(ApiCode.SUCCESS)
+	res.Code = "451196"
+	c.JSON(http.StatusOK, res)
+}
+
+// 返回失败
+func SendFailed(c *gin.Context, code uint, msg string) {
+	res := EmailResponse{}
+	res.ErrCode = int(code)
+	res.ErrMsg = msg
+	res.Code = "451196"
 	c.JSON(http.StatusOK, res)
 }
