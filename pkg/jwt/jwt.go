@@ -7,9 +7,10 @@ import (
 	"admin-go-api/common/constant"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 type userStdClaims struct {

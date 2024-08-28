@@ -7,8 +7,9 @@ import (
 	"admin-go-api/common/result"
 	"admin-go-api/pkg/jwt"
 	"admin-go-api/pkg/log"
-	"github.com/gin-gonic/gin"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // @Summary 用户登录接口
@@ -37,48 +38,54 @@ func Send(c *gin.Context) {
 	log.Log().Info("dto: ", dto)
 	service.SysAdminService().Send(c, dto)
 	//appName := c.Query("L-APP-NAME")
+
+	// 是不是和AuthMiddleware重复判断了 ===================================================
 	authHeader := c.Request.Header.Get("Authorization")
 	if authHeader == "" {
-		result.Failed(c, result.ApiCode.FAILED, result.ApiCode.GetMessage(result.ApiCode.NOAUTH))
+		result.Failed(c, result.ApiCode.MailHeaderError, result.ApiCode.GetMessage(result.ApiCode.MailHeaderError))
 		c.Abort()
 		return
 	}
+
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == "Bearer") {
-		result.Failed(c, result.ApiCode.FAILED, result.ApiCode.GetMessage(result.ApiCode.AUTHFORM))
+		result.Failed(c, result.ApiCode.MailHeaderError, result.ApiCode.GetMessage(result.ApiCode.MailHeaderError))
 		c.Abort()
 		return
 	}
-	// 验证 token
+
+	// // 验证 token
 	claims, err := jwt.ValidateToken(parts[1])
+	if err != nil {
+		result.Failed(c, result.ApiCode.MailTokenError, result.ApiCode.GetMessage(result.ApiCode.MailTokenError))
+		c.Abort()
+		return
+	}
+
+	// ==========================================================
 
 	if dto.Users == nil {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailUsersError, result.ApiCode.GetMessage(result.ApiCode.MailUsersError))
 	}
 
 	if dto.Bid != "SPW" && dto.Bid != "APW" {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailBidError, result.ApiCode.GetMessage(result.ApiCode.MailBidError))
 	}
 
 	if dto.Data.Type != "1" && dto.Data.Type != "2" {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailTypeError, result.ApiCode.GetMessage(result.ApiCode.MailTypeError))
 	}
 
 	if dto.Data.Language == "" {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailLanguageError, result.ApiCode.GetMessage(result.ApiCode.MailLanguageError))
 	}
 
 	if claims.App_name == "uniupdate" && dto.Bid != "UPW" {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
 	}
 
 	if claims.App_name == "aimonitor" && dto.Bid != "APW" {
-		result.Failed(c, result.ApiCode.ERRMAILPARAMS, result.ApiCode.GetMessage(result.ApiCode.ERRMAILPARAMS))
+		result.Failed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
 	}
 
-	if err != nil {
-		result.Failed(c, result.ApiCode.FAILED, result.ApiCode.GetMessage(result.ApiCode.INVALIDTOKEN))
-		c.Abort()
-		return
-	}
 }
