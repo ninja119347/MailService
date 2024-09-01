@@ -5,9 +5,8 @@ import (
 	"crypto/aes"
 	"encoding/base64"
 	"fmt"
-	"strconv"
-
 	"github.com/gotomicro/ego/core/elog"
+	"strconv"
 )
 
 // AES ECB模式的加密解密
@@ -92,7 +91,6 @@ func (this *AesTool) Decrypt(src []byte) ([]byte, error) {
 	//存储每次加密的数据
 	tmpData := make([]byte, this.BlockSize)
 	// elog.Error("BlockSize==============" + strconv.Itoa(this.BlockSize))
-	//TODO: index越界
 	//分组分块加密
 	for index := 0; index < len(src); index += this.BlockSize {
 		block.Decrypt(tmpData, src[index:index+this.BlockSize])
@@ -101,6 +99,7 @@ func (this *AesTool) Decrypt(src []byte) ([]byte, error) {
 	}
 	// elog.Error("End decryptData==============")
 	return this.unPadding(decryptData), nil
+	//return decryptData, nil
 }
 
 // 测试AES ECB 加密解密
@@ -109,11 +108,14 @@ func TestEncryptDecrypt() {
 	blockSize := 16
 	tool := NewAesTool(key, blockSize)
 	//加密
-	encryptBytes, _ := base64.StdEncoding.DecodeString("LEO7tlHzz2vlsG+H9fftIA=")
+	//encryptBytes, _ := base64.StdEncoding.DecodeString("Hzz2vlsG+H9fftIA==")
+	encryptBytes := []byte("abc1193471306")
 	fmt.Println(encryptBytes)
 	encryptData, _ := tool.Encrypt(encryptBytes)
 	fmt.Println(encryptData)
 	//解密
 	decryptData, _ := tool.Decrypt(encryptData)
 	fmt.Println(decryptData)
+	fmt.Println(base64.StdEncoding.EncodeToString(decryptData))
+	fmt.Println(string(decryptData))
 }

@@ -6,8 +6,9 @@ import (
 	"admin-go-api/common/constant"
 	"admin-go-api/common/result"
 	"admin-go-api/pkg/jwt"
-	"github.com/gin-gonic/gin"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware() func(c *gin.Context) {

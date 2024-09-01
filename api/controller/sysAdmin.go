@@ -6,6 +6,7 @@ import (
 	"admin-go-api/api/service"
 	"admin-go-api/pkg/log"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // @Summary 用户登录接口
@@ -34,4 +35,7 @@ func Send(c *gin.Context) {
 	log.Log().Info("dto: ", dto)
 	service.SysAdminService().Send(c, dto)
 	//appName := c.Query("L-APP-NAME")
+}
+func Test(c *gin.Context) {
+	c.JSON(http.StatusOK, "hello")
 }
