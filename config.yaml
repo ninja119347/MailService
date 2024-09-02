@@ -26,3 +26,6 @@ log:
   path: log/
   name: mailLog.log
   model: console
+
+imageSettings:
+  uploadDir: /static/upload/
