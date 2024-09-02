@@ -37,7 +37,7 @@ func InitRouter() *gin.Engine {
 func register(router *gin.Engine) {
 	r := router.Group("/api")
 	r.POST("/login", controller.Login)
-	//r.GET("/test", controller.Test)
+	r.GET("/test", controller.Test)
 	// 需要 JWT 验证的路由组
 	auth := router.Group("")
 	auth.Use(middleware.AuthMiddleware())
