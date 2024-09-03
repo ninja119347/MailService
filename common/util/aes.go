@@ -109,13 +109,21 @@ func TestEncryptDecrypt() {
 	tool := NewAesTool(key, blockSize)
 	//加密
 	//encryptBytes, _ := base64.StdEncoding.DecodeString("Hzz2vlsG+H9fftIA==")
-	encryptBytes := []byte("abc1193471306")
-	fmt.Println(encryptBytes)
+	encryptBytes := []byte("13274291746977")
+	fmt.Printf("原始输入字节流：%s\n", encryptBytes)
 	encryptData, _ := tool.Encrypt(encryptBytes)
-	fmt.Println(encryptData)
+	fmt.Printf("aes加密之后字节流：%s\n", encryptData)
+
+	//对加密结果进行base64编码和还原
+	data1 := base64.StdEncoding.EncodeToString(encryptData)
+	//data1 := "JjyWbU/+/SJr+1ycnn03Aw=="
+	data2, _ := base64.StdEncoding.DecodeString(data1)
+	fmt.Printf("base64再次加密之后：%s\n", data1)
+	fmt.Printf("base64解密：%s\n", data2)
+
 	//解密
-	decryptData, _ := tool.Decrypt(encryptData)
-	fmt.Println(decryptData)
-	fmt.Println(base64.StdEncoding.EncodeToString(decryptData))
-	fmt.Println(string(decryptData))
+	decryptData, _ := tool.Decrypt(data2)
+	fmt.Printf("aes解密之后字节流：%s\n", decryptData)
+	fmt.Printf("最终得到的原始输入字符串： %s\n", string(decryptData))
+
 }

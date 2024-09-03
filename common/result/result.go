@@ -47,7 +47,7 @@ func SendSuccess(c *gin.Context) {
 	res := EmailResponse{}
 	res.ErrCode = int(ApiCode.SUCCESS)
 	res.ErrMsg = ApiCode.GetMessage(ApiCode.SUCCESS)
-	res.Code = "451196"
+	res.Code = ""
 	c.JSON(http.StatusOK, res)
 }
 
@@ -56,6 +56,6 @@ func SendFailed(c *gin.Context, code uint, msg string) {
 	res := EmailResponse{}
 	res.ErrCode = int(code)
 	res.ErrMsg = msg
-	res.Code = "451196"
+	res.Code = ""
 	c.JSON(http.StatusOK, res)
 }

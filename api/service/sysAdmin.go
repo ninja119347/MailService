@@ -11,6 +11,7 @@ import (
 	"admin-go-api/pkg/jwt"
 	"crypto/sha512"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/hex"
 	"strconv"
 	"strings"
@@ -85,7 +86,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 // + uniupdate的解密算法
 func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	//参数校验
-	util.TestEncryptDecrypt()
+	//util.TestEncryptDecrypt()
 	err := validator.New().Struct(dto)
 	if err != nil {
 		result.SendFailed(c, uint(result.ApiCode.MailRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.MailRequestBodyError))
@@ -142,7 +143,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		ASE_KEY := "pzy0123456789pzy"
 		blockSize := 16
 		tool := util.NewAesTool(ASE_KEY, blockSize)
-		encryptContent := []byte(param_content)
+		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
 		param_password, _ := tool.Decrypt([]byte(encryptContent))
 
 		if param_type == "1" {
