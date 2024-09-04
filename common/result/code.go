@@ -26,6 +26,7 @@ type Codes struct {
 	MailAppnameBidError    uint
 	MailRequestBodyError   uint
 	MailContexError        uint
+	MailContentError       uint
 
 	ERRMAILSEND   uint
 	ERRMAILPARAMS uint
@@ -58,6 +59,7 @@ var ApiCode = &Codes{
 	MailAppnameBidError:  419,
 	MailRequestBodyError: 420,
 	MailContexError:      421,
+	MailContentError:     422,
 
 	ERRMAILSEND:   801,
 	ERRMAILPARAMS: 802,
@@ -94,8 +96,8 @@ func init() {
 		ApiCode.MailLanguageError:    "request param error",
 		ApiCode.MailAppnameBidError:  "request param error",
 		ApiCode.MailRequestBodyError: "request param error",
-
-		ApiCode.ERRMAILPARAMS: "param error",
+		ApiCode.MailContentError:     "request param error",
+		ApiCode.ERRMAILPARAMS:        "param error",
 	}
 }
 

@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -86,7 +87,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 // + uniupdate的解密算法
 func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	//参数校验
-	//util.TestEncryptDecrypt()
+	util.TestEncryptDecrypt()
 	err := validator.New().Struct(dto)
 	if err != nil {
 		result.SendFailed(c, uint(result.ApiCode.MailRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.MailRequestBodyError))
@@ -145,7 +146,13 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		tool := util.NewAesTool(ASE_KEY, blockSize)
 		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
 		param_password, _ := tool.Decrypt([]byte(encryptContent))
-
+		//判断非法字符
+		for _, char := range string(param_password) {
+			if !unicode.IsPrint(rune(char)) && char != 0 {
+				result.SendFailed(c, result.ApiCode.ERRMAILVCODE, result.ApiCode.GetMessage(result.ApiCode.ERRMAILVCODE))
+				return
+			}
+		}
 		if param_type == "1" {
 			if param_language == "zh-CN" {
 				title = "Uniupdate 账户创建"
