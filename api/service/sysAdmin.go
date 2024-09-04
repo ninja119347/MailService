@@ -144,12 +144,16 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		ASE_KEY := "pzy0123456789pzy"
 		blockSize := 16
 		tool := util.NewAesTool(ASE_KEY, blockSize)
+		if len(param_content)%4 != 0 || param_content == "" {
+			result.SendFailed(c, result.ApiCode.MailContentError, result.ApiCode.GetMessage(result.ApiCode.MailContentError))
+			return
+		}
 		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
 		param_password, _ := tool.Decrypt([]byte(encryptContent))
 		//判断非法字符
 		for _, char := range string(param_password) {
 			if !unicode.IsPrint(rune(char)) && char != 0 {
-				result.SendFailed(c, result.ApiCode.ERRMAILVCODE, result.ApiCode.GetMessage(result.ApiCode.ERRMAILVCODE))
+				result.SendFailed(c, result.ApiCode.MailContentError, result.ApiCode.GetMessage(result.ApiCode.MailContentError))
 				return
 			}
 		}

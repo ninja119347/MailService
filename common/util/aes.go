@@ -27,20 +27,32 @@ func (this *AesTool) padding(src []byte) []byte {
 		return src
 	} else {
 		//填充数据
-		return append(src, bytes.Repeat([]byte{byte(0)}, paddingCount)...)
+		return append(src, bytes.Repeat([]byte{byte(paddingCount)}, paddingCount)...)
 	}
 }
 
 // unpadding
-func (this *AesTool) unPadding(src []byte) []byte {
+func (this *AesTool) unPadding(data []byte) []byte {
 	//for i := len(src) - 1; ; i-- {
 	//	if src[i] != 0 {
 	//		return src[:i+1]
 	//	}
 	//}
-	unPadData := src[:len(src)-int(src[len(src)-1])]
+
+	paddingLen := int(data[len(data)-1])
+	//没有使用PKCS#7填充
+	if paddingLen == 0 || paddingLen > len(data) {
+		return data
+	}
+	padding := data[len(data)-paddingLen:]
+	for _, b := range padding {
+		if b != byte(paddingLen) {
+			return data
+		}
+	}
+	//进行了填充
+	unPadData := data[:len(data)-int(data[len(data)-1])]
 	return unPadData
-	//return nil
 }
 
 func (this *AesTool) Encrypt(src []byte) ([]byte, error) {
@@ -109,16 +121,17 @@ func TestEncryptDecrypt() {
 	key := "pzy0123456789pzy"
 	blockSize := 16
 	tool := NewAesTool(key, blockSize)
+	// oW2kq3qo
 	//加密
 	//encryptBytes, _ := base64.StdEncoding.DecodeString("LEO7tlHzz2vlsG+H9fftIA==")
-	//encryptBytes := []byte("13274291746977")
-	//fmt.Printf("原始输入字节流：%s\n", encryptBytes)
-	//encryptData, _ := tool.Encrypt(encryptBytes)
-	//fmt.Printf("aes加密之后字节流：%s\n", encryptData)
+	encryptBytes := []byte("oW2kq3qoabc1111111111111")
+	fmt.Printf("原始输入字节流：%v\n", encryptBytes)
+	encryptData, _ := tool.Encrypt(encryptBytes)
+	fmt.Printf("aes加密之后字节流：%v\n", encryptData)
 	//
 	////对加密结果进行base64编码和还原
-	//data1 := base64.StdEncoding.EncodeToString(encryptData)
-	data1 := "LEO7tlHzz2vlsG+H9fftIA"
+	data1 := base64.StdEncoding.EncodeToString(encryptData)
+	//data1 := "LEO7tlHzz2vlsG+H9fftIA=="
 	data2, _ := base64.StdEncoding.DecodeString(data1)
 	fmt.Printf("base64再次加密之后：%s\n", data1)
 	fmt.Printf("base64解密：%v\n", data2)
