@@ -13,7 +13,6 @@ import (
 
 func AuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		// 是不是和Send重复判断了 ===================================================
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
 			result.Failed(c, result.ApiCode.MailHeaderError, result.ApiCode.GetMessage(result.ApiCode.MailHeaderError))
@@ -51,7 +50,7 @@ func AuthMiddleware() func(c *gin.Context) {
 		}
 
 		// 将用户信息存储在上下文中
-		c.Set(constant.ContexkeyUserObj, claims)
+		c.Set(constant.Claims, claims)
 		c.Next()
 	}
 }

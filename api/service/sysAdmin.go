@@ -93,7 +93,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		result.SendFailed(c, uint(result.ApiCode.MailRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.MailRequestBodyError))
 		return
 	}
-	u, exists := c.Get(constant.ContexkeyUserObj)
+	u, exists := c.Get(constant.Claims)
 	claims := u.(*entity.JwtAdmin)
 	if !exists {
 		result.SendFailed(c, result.ApiCode.MailContexError, result.ApiCode.GetMessage(result.ApiCode.MailContexError))
@@ -145,7 +145,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		blockSize := 16
 		tool := util.NewAesTool(ASE_KEY, blockSize)
 		if len(param_content)%4 != 0 || param_content == "" {
-			result.SendFailed(c, result.ApiCode.MailContentError, result.ApiCode.GetMessage(result.ApiCode.MailContentError))
+			result.SendFailed(c, result.ApiCode.MailDecryptError, result.ApiCode.GetMessage(result.ApiCode.MailDecryptError))
 			return
 		}
 		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
@@ -153,7 +153,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		//判断非法字符
 		for _, char := range string(param_password) {
 			if !unicode.IsPrint(rune(char)) && char != 0 {
-				result.SendFailed(c, result.ApiCode.MailContentError, result.ApiCode.GetMessage(result.ApiCode.MailContentError))
+				result.SendFailed(c, result.ApiCode.MailDecryptError, result.ApiCode.GetMessage(result.ApiCode.MailDecryptError))
 				return
 			}
 		}

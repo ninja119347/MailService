@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	//"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"os"
@@ -54,8 +55,8 @@ type log struct {
 
 var Config *config
 
-func init() {
-	file, err := os.ReadFile("config.yaml")
+func LoadConfig(configPath string) {
+	file, err := os.ReadFile(configPath)
 	if err != nil {
 		panic(err)
 	}
@@ -63,4 +64,10 @@ func init() {
 	if err1 != nil {
 		panic(err1)
 	}
+}
+
+func init() {
+	configPath := flag.String("config", "config_dev.yaml", "path to the config file")
+	flag.Parse()
+	LoadConfig(*configPath)
 }

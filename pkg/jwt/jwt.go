@@ -35,7 +35,7 @@ func GenerateTokenByAdmin(admin dto.LoginDto) (string, int64, error) {
 	JwtAdmin.Id = admin.Id
 	JwtAdmin.App_name = admin.AppName
 	JwtAdmin.Id_type = admin.IdType
-	claims := userStdClaims{
+	Claims := userStdClaims{
 		JwtAdmin,
 		jwt.StandardClaims{
 			//1800s
@@ -45,9 +45,9 @@ func GenerateTokenByAdmin(admin dto.LoginDto) (string, int64, error) {
 			NotBefore: time.Now().Unix(),                                   // 生效时间
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims)
 	tokenString, err := token.SignedString(Secret)
-	return tokenString, claims.ExpiresAt, err
+	return tokenString, Claims.ExpiresAt, err
 }
 
 // 解析JWT(固定写法)
@@ -61,8 +61,8 @@ func ValidateToken(tokenString string) (*entity.JwtAdmin, error) {
 	if token == nil {
 		return nil, errors.New(ErrInValid)
 	}
-	claims := userStdClaims{}
-	_, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+	Claims := userStdClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, &Claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -71,12 +71,12 @@ func ValidateToken(tokenString string) (*entity.JwtAdmin, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &claims.JwtAdmin, nil
+	return &Claims.JwtAdmin, nil
 }
 
 // 获取当前登录appid
 func GetAdminId(c *gin.Context) (string, error) {
-	u, exit := c.Get(constant.ContexkeyUserObj)
+	u, exit := c.Get(constant.Claims)
 	if !exit {
 		return "", errors.New("can't get user id")
 	}
@@ -89,7 +89,7 @@ func GetAdminId(c *gin.Context) (string, error) {
 
 // 返回app_name
 func GetAppName(c *gin.Context) (string, error) {
-	u, exit := c.Get(constant.ContexkeyUserObj)
+	u, exit := c.Get(constant.Claims)
 	if !exit {
 		return "0", errors.New("can't get app name")
 	}
@@ -102,7 +102,7 @@ func GetAppName(c *gin.Context) (string, error) {
 
 // 返回admin信息
 func GetAdmin(c *gin.Context) (*entity.JwtAdmin, error) {
-	u, exit := c.Get(constant.ContexkeyUserObj)
+	u, exit := c.Get(constant.Claims)
 	if !exit {
 		return nil, errors.New("can't get user")
 	}

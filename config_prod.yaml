@@ -5,11 +5,11 @@ server:
 #数据库配置
 db:
   dialects: mysql
-  host: lfdbldsvr1.lenovo.com
+  host: display-ota.mysql.rds.aliyuncs.com
   port: 3306
-  db: mail_dev
-  username: root
-  password: tuzi990531
+  db: mail
+  username: mail
+  password: Mail20240906
   charset: utf8
   #最大空闲数
   maxIdle: 50
