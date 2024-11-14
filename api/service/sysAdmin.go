@@ -13,6 +13,8 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -141,6 +143,24 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	desc := ""
 
 	if param_bid == "UPW" {
+		if param_type == "3" {
+			if param_language == "zh-CN" {
+				title = "OneUpdate 账户激活"
+				desc = MailForUniupdateActivateCN(string(param_content))
+			} else {
+				title = "OneUpdate account activate"
+				desc = MailForUniupdateActivate(string(param_content))
+			}
+		} else if param_type == "4" {
+			if param_language == "zh-CN" {
+				title = "OneUpdate-您有新的请求待审批"
+				desc = MailForUniupdateApplicationCN(string(param_content))
+			} else {
+				title = "OneUpdate: You have a new request for approval"
+				desc = MailForUniupdatApplication(string(param_content))
+			}
+		}
+
 		ASE_KEY := "pzy0123456789pzy"
 		blockSize := 16
 		tool := util.NewAesTool(ASE_KEY, blockSize)
@@ -150,6 +170,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		}
 		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
 		param_password, _ := tool.Decrypt([]byte(encryptContent))
+
 		//判断非法字符
 		for _, char := range string(param_password) {
 			if !unicode.IsPrint(rune(char)) && char != 0 {
@@ -159,18 +180,18 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		}
 		if param_type == "1" {
 			if param_language == "zh-CN" {
-				title = "Uniupdate 账户创建"
+				title = "OneUpdate 账户创建"
 				desc = MailForUniupdateCreateCN(string(param_password))
 			} else {
-				title = "Uniupdate account creation"
+				title = "OneUpdate account creation"
 				desc = MailForUniupdatCreate(string(param_password))
 			}
 		} else if param_type == "2" {
 			if param_language == "zh-CN" {
-				title = "Uniupdate 密码重置"
+				title = "OneUpdate 密码重置"
 				desc = MailForUniupdateResetCN(string(param_password))
 			} else {
-				title = "Uniupdate password reset"
+				title = "OneUpdate password reset"
 				desc = MailForUniupdatReset(string(param_password))
 			}
 		}
@@ -182,6 +203,10 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 			title = "Notification from AI Monitor Team"
 			desc = MailForAimonitor(param_content)
 		}
+	}
+
+	if desc == "Error parsing JSON" {
+		result.SendFailed(c, result.ApiCode.ERRMAILJSON, result.ApiCode.GetMessage(result.ApiCode.ERRMAILJSON))
 	}
 
 	if title != "" && desc != "" {
@@ -226,30 +251,94 @@ func sendMailMass(to []string, title, message string) {
 }
 
 func MailForUniupdateCreateCN(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想Uniupdate用户，我们已为您创建了该邮箱的账户。 <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想OneUpdate用户，我们已为您创建了该邮箱的账户。 <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 您的初始密码为：<b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请在登录后立即修改密码，谢谢！<br></span>"
 	return desc
 }
 
 func MailForUniupdatCreate(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo Uniupdate users, we have created an account for you for this mailbox. <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo OneUpdate users, we have created an account for you for this mailbox. <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Your initial password is: <b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please change your password immediately after login, thanks!<br></span>"
 	return desc
 }
 
 func MailForUniupdateResetCN(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想Uniupdate用户，我们收到了您重置 Uniupdate 密码的申请。<br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想OneUpdate用户，我们收到了您重置密码的申请。<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 您的临时密码为：<b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请在登录后立即修改密码，谢谢！<br></span>"
 	return desc
 }
 
 func MailForUniupdatReset(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo Uniupdate users, we have received your request to reset your Uniupdate password. <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo OneUpdate users, we have received your request to reset your password. <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Your temporary password is: <b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please change your password immediately after login, thanks!<br></span>"
+	return desc
+}
+
+func MailForUniupdateActivateCN(param string) (desc string) {
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 尊敬的用户，管理员正在为您开通 [OneUpdate] 账户。<br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 为了确保您的账户安全，请通过点击以下链接激活您的账户：【" + "<a href=\"" + param + "\">" + param + "</a>" + "】<br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请注意，此链接将在半个小时内有效。如果超过半个小时未激活，您需要联系管理员重新发送激活邮件。<br></span>"
+	return desc
+}
+
+func MailForUniupdateActivate(param string) (desc string) {
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear user, the administrator is in the process of opening a [OneUpdate] account for you.<br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> To ensure the security of your account, please activate your account by clicking the following link:【" + "<a href=\"" + param + "\">" + param + "</a>" + "】<br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please note that this link will be active for half an hour. If it is not activated for more than half an hour, you will need to contact the administrator to resend the activation email.<br></span>"
+	return desc
+}
+
+func MailForUniupdateApplicationCN(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var submitter string = result["submitter"].(string)
+	var modelName string = result["modelName"].(string)
+	var versionCode string = result["versionCode"].(string)
+	var url string = result["url"].(string)
+
+	if versionCode != "" {
+		versionCode = "版本号【" + versionCode + "】，"
+	}
+
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 管理员您好：<br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 【" + submitter + "】提交了：机型【" + modelName + "】，" + versionCode + "请点击链接去系统审批中进行审批：【" + "<a href=\"" + url + "\">" + url + "</a>" + "】<br></span>"
+	return desc
+}
+
+func MailForUniupdatApplication(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var submitter string = result["submitter"].(string)
+	var modelName string = result["modelName"].(string)
+	var versionCode string = result["versionCode"].(string)
+	var url string = result["url"].(string)
+
+	if versionCode != "" {
+		versionCode = "version number【" + versionCode + "】，"
+	}
+
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Hello administrator: <br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 【" + submitter + "】submitted: model【" + modelName + "】，" + versionCode + " please click on the link to go to approval:【" + "<a href=\"" + url + "\">" + url + "</a>" + "】<br></span>"
 	return desc
 }
 

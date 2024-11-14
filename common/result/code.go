@@ -31,6 +31,7 @@ type Codes struct {
 	ERRMAILSEND   uint
 	ERRMAILPARAMS uint
 	ERRMAILVCODE  uint
+	ERRMAILJSON   uint
 	ERROK         uint
 }
 
@@ -64,6 +65,7 @@ var ApiCode = &Codes{
 	ERRMAILSEND:   801,
 	ERRMAILPARAMS: 802,
 	ERRMAILVCODE:  803,
+	ERRMAILJSON:   804,
 	ERROK:         0,
 }
 
@@ -98,6 +100,7 @@ func init() {
 		ApiCode.MailRequestBodyError: "request param error",
 		ApiCode.MailDecryptError:     "request param error",
 		ApiCode.ERRMAILPARAMS:        "param error",
+		ApiCode.ERRMAILJSON:          "param error",
 	}
 }
 
