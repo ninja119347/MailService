@@ -64,11 +64,13 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 		return
 	}
 	// 校验appid
-	app_id := dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.SIGN_KEY
+	app_id := dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.DEFAULT_KEY
 	if dto.AppName == "uniupdate" {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.UNIUPDATE_KEY
 	} else if dto.AppName == "aimonitor" {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.AIMONITOR_KEY
+	} else if dto.AppName == "sign" {
+		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.SIGN_KEY
 	}
 
 	message := []byte(app_id)
@@ -108,12 +110,12 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		return
 	}
 
-	if dto.Bid != "UPW" && dto.Bid != "APW" {
+	if dto.Bid != "UPW" && dto.Bid != "APW" && dto.Bid != "SIGN" {
 		result.SendFailed(c, result.ApiCode.MailBidError, result.ApiCode.GetMessage(result.ApiCode.MailBidError))
 		return
 	}
 
-	if dto.Data.Type != "1" && dto.Data.Type != "2" {
+	if dto.Data.Type != "1" && dto.Data.Type != "2" && dto.Data.Type != "3" && dto.Data.Type != "4" {
 		result.SendFailed(c, result.ApiCode.MailTypeError, result.ApiCode.GetMessage(result.ApiCode.MailTypeError))
 		return
 	}
@@ -129,6 +131,11 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	}
 
 	if claims.App_name == "aimonitor" && dto.Bid != "APW" {
+		result.SendFailed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
+		return
+	}
+
+	if claims.App_name == "sign" && dto.Bid != "SIGN" {
 		result.SendFailed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
 		return
 	}
@@ -161,23 +168,27 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 			}
 		}
 
-		ASE_KEY := "pzy0123456789pzy"
-		blockSize := 16
-		tool := util.NewAesTool(ASE_KEY, blockSize)
-		if len(param_content)%4 != 0 || param_content == "" {
-			result.SendFailed(c, result.ApiCode.MailDecryptError, result.ApiCode.GetMessage(result.ApiCode.MailDecryptError))
-			return
-		}
-		encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
-		param_password, _ := tool.Decrypt([]byte(encryptContent))
-
-		//判断非法字符
-		for _, char := range string(param_password) {
-			if !unicode.IsPrint(rune(char)) && char != 0 {
+		var param_password []byte
+		if param_bid == "1" || param_bid == "2" {
+			ASE_KEY := "pzy0123456789pzy"
+			blockSize := 16
+			tool := util.NewAesTool(ASE_KEY, blockSize)
+			if len(param_content)%4 != 0 || param_content == "" {
 				result.SendFailed(c, result.ApiCode.MailDecryptError, result.ApiCode.GetMessage(result.ApiCode.MailDecryptError))
 				return
 			}
+			encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
+			param_password, _ := tool.Decrypt([]byte(encryptContent))
+
+			//判断非法字符
+			for _, char := range string(param_password) {
+				if !unicode.IsPrint(rune(char)) && char != 0 {
+					result.SendFailed(c, result.ApiCode.MailDecryptError, result.ApiCode.GetMessage(result.ApiCode.MailDecryptError))
+					return
+				}
+			}
 		}
+
 		if param_type == "1" {
 			if param_language == "zh-CN" {
 				title = "OneUpdate 账户创建"
@@ -202,6 +213,24 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		} else {
 			title = "Notification from AI Monitor Team"
 			desc = MailForAimonitor(param_content)
+		}
+	} else if param_bid == "SIGN" {
+		if param_type == "1" {
+			if param_language == "zh-CN" {
+				title = "Sign-您有新的APK签名申请待审批"
+				desc = MailForSignRequestCN(string(param_content))
+			} else {
+				title = "Sign-You have a new APK signing request pending approval"
+				desc = MailForSignRequest(string(param_content))
+			}
+		} else if param_type == "2" {
+			if param_language == "zh-CN" {
+				title = "Sign-您的APK签名申请已审批"
+				desc = MailForApprovedCN(string(param_content))
+			} else {
+				title = "OneUpdate: You have a new request for approval"
+				desc = MailForApproved(string(param_content))
+			}
 		}
 	}
 
@@ -314,6 +343,122 @@ func MailForUniupdateApplicationCN(param string) (desc string) {
 
 	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 管理员您好：<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 【" + submitter + "】提交了：机型【" + modelName + "】，" + versionCode + "请点击链接去系统审批中进行审批：【" + "<a href=\"" + url + "\">" + url + "</a>" + "】<br></span>"
+	return desc
+}
+
+func MailForSignRequestCN(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var id string = result["id"].(string)
+	var applicant string = result["applicant"].(string)
+	var filename string = result["filename"].(string)
+	var mt string = result["mt"].(string)
+	var description string = result["description"].(string)
+	var url string = result["url"].(string)
+
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 您有新的APK签名申请待审批, 签名申请详情:  <br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Application ID: <b>" + id + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Applicant: <b>" + applicant + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> File Name: <b>" + filename + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Machine Types: <b>" + mt + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Description: <b>" + description + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请点击 " + "<a href=\"" + url + "\">" + url + "</a>" + " 前往审批。</span>"
+	return desc
+}
+
+func MailForSignRequest(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var id string = result["id"].(string)
+	var applicant string = result["applicant"].(string)
+	var filename string = result["filename"].(string)
+	var mt string = result["mt"].(string)
+	var description string = result["description"].(string)
+	var url string = result["url"].(string)
+
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> You have a new APK sign request pending approval, the sign request info:  <br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Application ID: <b>" + id + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Applicant: <b>" + applicant + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> File Name: <b>" + filename + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Machine Types: <b>" + mt + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Description: <b>" + description + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please click " + "<a href=\"" + url + "\">" + url + "</a>" + " to go to approval.</span>"
+	return desc
+}
+
+func MailForApprovedCN(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var id string = result["id"].(string)
+	var approver string = result["approver"].(string)
+	var filename string = result["filename"].(string)
+	var mt string = result["mt"].(string)
+	var status string = result["result"].(string)
+	var comment string = result["comment"].(string)
+	var url string = result["url"].(string)
+
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 您的APK签名申请已审批, 审批结果详情:  <br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Application ID: <b>" + id + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Approver: <b>" + approver + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> File Name: <b>" + filename + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Machine Types: <b>" + mt + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Result: <b>" + status + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Comment: <b>" + comment + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请点击 " + "<a href=\"" + url + "\">" + url + "</a>" + " 前往查看详情。</span>"
+	return desc
+}
+
+func MailForApproved(param string) (desc string) {
+	var result map[string]interface{}
+
+	// 解析 JSON 字符串
+	err := json.Unmarshal([]byte(param), &result)
+	if err != nil {
+		log.Fatalf("Error parsing JSON: %v", err)
+		desc = "Error parsing JSON"
+		return desc
+	}
+
+	var id string = result["id"].(string)
+	var approver string = result["approver"].(string)
+	var filename string = result["filename"].(string)
+	var mt string = result["mt"].(string)
+	var status string = result["result"].(string)
+	var comment string = result["comment"].(string)
+	var url string = result["url"].(string)
+
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Your APK sign request has been approved, the approval result info:  <br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Application ID: <b>" + id + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Approver: <b>" + approver + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> File Name: <b>" + filename + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Machine Types: <b>" + mt + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Result: <b>" + status + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Comment: <b>" + comment + " </b><br></span>" +
+		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please click " + "<a href=\"" + url + "\">" + url + "</a>" + " to check detail.</span>"
 	return desc
 }
 

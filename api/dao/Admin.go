@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	SIGN_KEY      = "Default"
+	DEFAULT_KEY   = "Default"
 	UNIUPDATE_KEY = "0725#uni#UPDATE"
 	AIMONITOR_KEY = "#ai@monitor0725"
+	SIGN_KEY      = "sign$Lenovo1984"
 )
 
 func CheckAppNameExists(appName string) (bool, error) {
