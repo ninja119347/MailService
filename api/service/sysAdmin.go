@@ -14,16 +14,15 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/gotomicro/ego/core/elog"
+	gomail "gopkg.in/gomail.v2"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
-
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/gotomicro/ego/core/elog"
-	gomail "gopkg.in/gomail.v2"
 )
 
 // 定义接口
@@ -169,7 +168,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		}
 
 		var param_password []byte
-		if param_bid == "1" || param_bid == "2" {
+		if param_type == "1" || param_type == "2" {
 			ASE_KEY := "pzy0123456789pzy"
 			blockSize := 16
 			tool := util.NewAesTool(ASE_KEY, blockSize)
@@ -178,7 +177,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 				return
 			}
 			encryptContent, _ := base64.StdEncoding.DecodeString(param_content)
-			param_password, _ := tool.Decrypt([]byte(encryptContent))
+			param_password, _ = tool.Decrypt([]byte(encryptContent))
 
 			//判断非法字符
 			for _, char := range string(param_password) {
@@ -417,7 +416,7 @@ func MailForApprovedCN(param string) (desc string) {
 	var approver string = result["approver"].(string)
 	var filename string = result["filename"].(string)
 	var mt string = result["mt"].(string)
-	var status string = result["result"].(string)
+	var status string = result["status"].(string)
 	var comment string = result["comment"].(string)
 	var url string = result["url"].(string)
 

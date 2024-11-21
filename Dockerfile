@@ -33,4 +33,4 @@ COPY config_dev.yaml .
 EXPOSE 2002
 
  # 运行应用程序
-CMD ["./myapp", "--config=config_dev.yaml"]
+CMD ["./myapp", "--config=config_prod.yaml"]
