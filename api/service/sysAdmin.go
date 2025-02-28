@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gotomicro/ego/core/elog"
@@ -90,7 +91,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 // + uniupdate的解密算法
 func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	//参数校验
-	util.TestEncryptDecrypt()
+	//util.TestEncryptDecrypt()
 	err := validator.New().Struct(dto)
 	if err != nil {
 		result.SendFailed(c, uint(result.ApiCode.MailRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.MailRequestBodyError))
@@ -255,27 +256,40 @@ func SendMailApi(to []string, title, desc string) bool {
 		}
 	}
 
-	sendMailMass(to, title, desc)
+	err := sendMailMass(to, title, desc)
+	if err != nil {
+		return false
+	}
 	return true
 }
 
-func sendMailMass(to []string, title, message string) {
+func sendMailMass(to []string, title, message string) error {
+	//var userId int
+	//1->net 2->com
 	mail, err := dao.GetEmailInfo()
 	if err != nil {
 		elog.Error(err.Error())
+		return err
 	}
 	m := gomail.NewMessage()
 	// Email Host EmailPassword sys
+	//m.SetHeader(`From`, "ilfdadmin@smartdisplay.lenovo.com")
+
 	m.SetHeader(`From`, mail.Email)
 	m.SetHeader(`To`, to...)
 	m.SetHeader(`Subject`, title)
 	m.SetBody("text/html", message)
-	d := gomail.NewDialer(mail.Host, 80, mail.Email, mail.EmailPassword)
-	// 修改TLSconfig
+	port, _ := strconv.Atoi(dao.MAIL_PORT)
+	d := gomail.NewDialer(mail.Host, port, mail.Email, mail.EmailPassword)
+	fmt.Println("mail.port: " + strconv.Itoa(port))
+	//d := gomail.NewDialer(mail.Host, 465, "visualsota@smartdisplay.lenovo.net", "LeOtVi8117")
+	// 修改TLSconfig "visualsota@smartdisplay.lenovo.net" "MailTest123456"
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	if err := d.DialAndSend(m); err != nil {
-		elog.Error(err.Error())
+	if err1 := d.DialAndSend(m); err1 != nil {
+		elog.Error(err1.Error())
+		return err1
 	}
+	return nil
 }
 
 func MailForUniupdateCreateCN(param string) (desc string) {

@@ -55,6 +55,12 @@ func logFile() *logrus.Logger {
 			//设置日志切割时间间隔(1天)
 			rotatelogs.WithRotationTime(24*time.Hour),
 		)
+		//// 设置日志输出目标为文件
+		//logToFile.Out = logWriter
+		//
+		//// 设置日志级别和格式
+		//logToFile.SetLevel(logrus.DebugLevel)
+		//logToFile.Formatter = &logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05"}
 		writeMap := lfshook.WriterMap{
 			logrus.InfoLevel:  logWriter,
 			logrus.FatalLevel: logWriter,
@@ -67,6 +73,9 @@ func logFile() *logrus.Logger {
 		lfHook := lfshook.NewHook(writeMap, &logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05"})
 		//新增Hook
 		logToFile.AddHook(lfHook)
+
+		// 禁用控制台输出，将 Out 设置为 ioutil.Discard
+		//logToFile.Out = ioutil.Discard // 不再输出到控制台
 	}
 	return logToFile
 }

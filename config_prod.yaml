@@ -28,5 +28,11 @@ log:
   name: mailLog.log
   model: console
 
+mail:
+    host: {MAIL_HOST}
+    port: {MAIL_PORT}
+    username: {MAIL_USERNAME}
+    password: {MAIL_PASSWORD}
+
 imageSettings:
   uploadDir: /static/upload/
