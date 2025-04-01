@@ -11,6 +11,7 @@ package util
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -34,6 +35,9 @@ const (
 )
 
 var ipDB *ipdb.City
+
+// Validator 实例
+var validate = validator.New()
 
 func GenerateKid() (string, error) {
 	b := make([]byte, 16) // 16 bytes = 128 bits
@@ -244,9 +248,40 @@ func GenerateRandomFileName(length int) string {
 	return string(fileName)
 }
 
-// 自定义验证函数，检查字符串是否只包含字母和数字
-func IsValidInput(input string) bool {
-	// 使用正则表达式检查字符串是否只包含字母和数字
-	re := regexp.MustCompile("^[a-zA-Z0-9]+$")
-	return re.MatchString(input)
+// 校验函数
+func ValidateStruct(s interface{}) error {
+	err := validate.Struct(s)
+	if err != nil {
+		// 格式化错误信息
+		for _, err := range err.(validator.ValidationErrors) {
+			return fmt.Errorf("字段 %s 违反校验规则 %s", err.Field(), err.Tag())
+		}
+	}
+	return nil
+}
+
+// **自定义校验规则**
+func init() {
+	// 语言校验: 只允许 "zh-CN" 或 "en-US"
+	validate.RegisterValidation("language", func(fl validator.FieldLevel) bool {
+		language := fl.Field().String()
+		return language == "zh-CN" || language == "en-US"
+	})
+
+	// 邮件内容校验: 必须包含至少 5 个字符，不允许包含敏感词
+	validate.RegisterValidation("content", func(fl validator.FieldLevel) bool {
+		content := fl.Field().String()
+		if len(content) < 5 {
+			return false
+		}
+		// 设定敏感词
+		sensitiveWords := []string{"spam", "banned", "广告"}
+		for _, word := range sensitiveWords {
+			match, _ := regexp.MatchString(word, content)
+			if match {
+				return false
+			}
+		}
+		return true
+	})
 }

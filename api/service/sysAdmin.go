@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/gotomicro/ego/core/elog"
 	gomail "gopkg.in/gomail.v2"
 	"log"
@@ -40,13 +39,14 @@ var sysAdminServiceImpl = SysAdminServiceImpl{}
 // + appid解密
 func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 	//校验参数
-	err := validator.New().Struct(dto)
+	//err := validator.New().Struct(dto)
+	err := util.ValidateStruct(&dto)
 	//防止Sql注入
-	valid := util.IsValidInput(dto.AppName)
-	if !valid {
-		result.Failed(c, uint(result.ApiCode.LoginAppnameError), result.ApiCode.GetMessage(result.ApiCode.LoginAppnameError))
-		return
-	}
+	//valid := util.ValidateStruct(&dto)
+	//if valid != nil {
+	//	result.Failed(c, uint(result.ApiCode.LoginAppnameError), result.ApiCode.GetMessage(result.ApiCode.LoginAppnameError))
+	//	return
+	//}
 	if err != nil {
 		result.Failed(c, uint(result.ApiCode.LoginRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.LoginRequestBodyError))
 		return
@@ -101,7 +101,8 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	//参数校验
 	//util.TestEncryptDecrypt()
-	err := validator.New().Struct(dto)
+	//err := validator.New().Struct(dto)
+	err := util.ValidateStruct(&dto)
 	if err != nil {
 		result.SendFailed(c, uint(result.ApiCode.MailRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.MailRequestBodyError))
 		return
