@@ -243,3 +243,10 @@ func GenerateRandomFileName(length int) string {
 	}
 	return string(fileName)
 }
+
+// 自定义验证函数，检查字符串是否只包含字母和数字
+func IsValidInput(input string) bool {
+	// 使用正则表达式检查字符串是否只包含字母和数字
+	re := regexp.MustCompile("^[a-zA-Z0-9]+$")
+	return re.MatchString(input)
+}

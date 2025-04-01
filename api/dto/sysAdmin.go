@@ -1,6 +1,8 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 // 登陆对象
 type LoginDto struct {
@@ -16,7 +18,6 @@ type SendDto struct {
 	Users []string `json:"users" validate:"required,dive,email"` //目标用户邮箱
 	Bid   string   `json:"bid" validate:"required"`              //业务大类
 	Data  Data     `json:"data" validate:"required"`             //数据封装
-
 }
 
 type Data struct {

@@ -41,6 +41,12 @@ var sysAdminServiceImpl = SysAdminServiceImpl{}
 func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 	//校验参数
 	err := validator.New().Struct(dto)
+	//防止Sql注入
+	valid := util.IsValidInput(dto.AppName)
+	if !valid {
+		result.Failed(c, uint(result.ApiCode.LoginAppnameError), result.ApiCode.GetMessage(result.ApiCode.LoginAppnameError))
+		return
+	}
 	if err != nil {
 		result.Failed(c, uint(result.ApiCode.LoginRequestBodyError), result.ApiCode.GetMessage(result.ApiCode.LoginRequestBodyError))
 		return
@@ -71,6 +77,8 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.AIMONITOR_KEY
 	} else if dto.AppName == "sign" {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.SIGN_KEY
+	} else if dto.AppName == "autobuild" {
+		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.AUTOBUILD_KEY
 	}
 
 	message := []byte(app_id)
@@ -79,6 +87,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 	bytes := hash.Sum(nil)
 	hashCode := hex.EncodeToString(bytes)
 	if strings.ToUpper(dto.AppId) != strings.ToUpper(hashCode) {
+		fmt.Println("app_id: " + strings.ToUpper(hashCode))
 		result.Failed(c, uint(result.ApiCode.LoginAppidError), result.ApiCode.GetMessage(result.ApiCode.LoginAppidError))
 		return
 	}
@@ -110,7 +119,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		return
 	}
 
-	if dto.Bid != "UPW" && dto.Bid != "APW" && dto.Bid != "SIGN" {
+	if dto.Bid != "UPW" && dto.Bid != "APW" && dto.Bid != "SIGN" && dto.Bid != "ABC" {
 		result.SendFailed(c, result.ApiCode.MailBidError, result.ApiCode.GetMessage(result.ApiCode.MailBidError))
 		return
 	}
@@ -140,6 +149,11 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		return
 	}
 
+	if claims.App_name == "autobuild" && dto.Bid != "ABC" {
+		result.SendFailed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
+		return
+	}
+
 	//发送邮件
 	param_bid := dto.Bid
 	param_type := dto.Data.Type
@@ -152,18 +166,18 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 	if param_bid == "UPW" {
 		if param_type == "3" {
 			if param_language == "zh-CN" {
-				title = "OneUpdate 账户激活"
+				title = "Uniupdate Cloud 账户激活"
 				desc = MailForUniupdateActivateCN(string(param_content))
 			} else {
-				title = "OneUpdate account activate"
+				title = "Uniupdate Cloud account activate"
 				desc = MailForUniupdateActivate(string(param_content))
 			}
 		} else if param_type == "4" {
 			if param_language == "zh-CN" {
-				title = "OneUpdate-您有新的请求待审批"
+				title = "Uniupdate Cloud-您有新的请求待审批"
 				desc = MailForUniupdateApplicationCN(string(param_content))
 			} else {
-				title = "OneUpdate: You have a new request for approval"
+				title = "Uniupdate Cloud: You have a new request for approval"
 				desc = MailForUniupdatApplication(string(param_content))
 			}
 		}
@@ -191,18 +205,18 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 
 		if param_type == "1" {
 			if param_language == "zh-CN" {
-				title = "OneUpdate 账户创建"
+				title = "Uniupdate Cloud 账户创建"
 				desc = MailForUniupdateCreateCN(string(param_password))
 			} else {
-				title = "OneUpdate account creation"
+				title = "Uniupdate Cloud account creation"
 				desc = MailForUniupdatCreate(string(param_password))
 			}
 		} else if param_type == "2" {
 			if param_language == "zh-CN" {
-				title = "OneUpdate 密码重置"
+				title = "Uniupdate Cloud 密码重置"
 				desc = MailForUniupdateResetCN(string(param_password))
 			} else {
-				title = "OneUpdate password reset"
+				title = "Uniupdate Cloud password reset"
 				desc = MailForUniupdatReset(string(param_password))
 			}
 		}
@@ -228,8 +242,28 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 				title = "Sign-您的APK签名申请已审批"
 				desc = MailForApprovedCN(string(param_content))
 			} else {
-				title = "OneUpdate: You have a new request for approval"
+				title = "Uniupdate Cloud: You have a new request for approval"
 				desc = MailForApproved(string(param_content))
+			}
+		}
+	} else if param_bid == "ABC" {
+		if param_type == "1" {
+			//编译成功
+			if param_language == "zh-CN" {
+				title = "AutoBuild-编译成功"
+				desc = MailForAutoBuildSuccessCN(param_content)
+			} else {
+				title = "AutoBuild-Compile success"
+				desc = MailForAutoBuildSuccess(param_content)
+			}
+		} else if param_type == "2" {
+			//编译失败
+			if param_language == "zh-CN" {
+				title = "AutoBuild-编译失败"
+				desc = MailForAutoBuildFailCN(param_content)
+			} else {
+				title = "AutoBuild-Compile failed"
+				desc = MailForAutoBuildFail(param_content)
 			}
 		}
 	}
@@ -293,42 +327,42 @@ func sendMailMass(to []string, title, message string) error {
 }
 
 func MailForUniupdateCreateCN(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想OneUpdate用户，我们已为您创建了该邮箱的账户。 <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想Uniupdate Cloud用户，我们已为您创建了该邮箱的账户。 <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 您的初始密码为：<b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请在登录后立即修改密码，谢谢！<br></span>"
 	return desc
 }
 
 func MailForUniupdatCreate(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo OneUpdate users, we have created an account for you for this mailbox. <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo Uniupdate Cloud users, we have created an account for you for this mailbox. <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Your initial password is: <b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please change your password immediately after login, thanks!<br></span>"
 	return desc
 }
 
 func MailForUniupdateResetCN(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想OneUpdate用户，我们收到了您重置密码的申请。<br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 亲爱的联想Uniupdate Cloud用户，我们收到了您重置密码的申请。<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 您的临时密码为：<b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请在登录后立即修改密码，谢谢！<br></span>"
 	return desc
 }
 
 func MailForUniupdatReset(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo OneUpdate users, we have received your request to reset your password. <br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear Lenovo Uniupdate Cloud users, we have received your request to reset your password. <br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Your temporary password is: <b>" + param + " </b><br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please change your password immediately after login, thanks!<br></span>"
 	return desc
 }
 
 func MailForUniupdateActivateCN(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 尊敬的用户，管理员正在为您开通 [OneUpdate] 账户。<br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 尊敬的用户，管理员正在为您开通 [Uniupdate Cloud] 账户。<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 为了确保您的账户安全，请通过点击以下链接激活您的账户：【" + "<a href=\"" + param + "\">" + param + "</a>" + "】<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> 请注意，此链接将在半个小时内有效。如果超过半个小时未激活，您需要联系管理员重新发送激活邮件。<br></span>"
 	return desc
 }
 
 func MailForUniupdateActivate(param string) (desc string) {
-	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear user, the administrator is in the process of opening a [OneUpdate] account for you.<br></span>" +
+	desc = "<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Dear user, the administrator is in the process of opening a [Uniupdate Cloud] account for you.<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> To ensure the security of your account, please activate your account by clicking the following link:【" + "<a href=\"" + param + "\">" + param + "</a>" + "】<br></span>" +
 		"<span style=\"font-size:20px;font-family: Microsoft YaHei\"> Please note that this link will be active for half an hour. If it is not activated for more than half an hour, you will need to contact the administrator to resend the activation email.<br></span>"
 	return desc
@@ -515,6 +549,30 @@ func MailForAimonitor(param string) (desc string) {
 		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> If you do not want to receive such email notifications in the future, please turn off the change reminder button in AI Monitor's Settings-Display Settings Change Reminder.<br></span>" +
 		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Best, <br></span>" +
 		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> AI Monitor Team <br></span>"
+	return desc
+}
+
+func MailForAutoBuildSuccessCN(param string) (desc string) {
+	desc = "<span style=\"font-size:15px;font-family: Microsoft YaHei\"> 您的编译任务已完成，编译成功。<br></span>" +
+		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> 编译结果：【" + param + "】<br></span>"
+	return desc
+}
+
+func MailForAutoBuildSuccess(param string) (desc string) {
+	desc = "<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Your compilation task has been completed and compiled successfully.<br></span>" +
+		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Compilation result:【" + param + "】<br></span>"
+	return desc
+}
+
+func MailForAutoBuildFailCN(param string) (desc string) {
+	desc = "<span style=\"font-size:15px;font-family: Microsoft YaHei\"> 您的编译任务已完成，编译失败。<br></span>" +
+		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> 编译结果：【" + param + "】<br></span>"
+	return desc
+}
+
+func MailForAutoBuildFail(param string) (desc string) {
+	desc = "<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Your compilation task has been completed and compiled failed.<br></span>" +
+		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Compilation result:【" + param + "】<br></span>"
 	return desc
 }
 
