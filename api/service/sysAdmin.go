@@ -79,6 +79,9 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto dto.LoginDto) {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.SIGN_KEY
 	} else if dto.AppName == "autobuild" {
 		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.AUTOBUILD_KEY
+		// 在 Login 函数的 key 验证部分添加
+	} else if dto.AppName == "ilfd_s2" {
+		app_id = dto.Id + dto.AppName + strconv.Itoa(int(dto.UltraData)) + dao.ILFD_S2_KEY
 	}
 
 	message := []byte(app_id)
@@ -120,7 +123,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		return
 	}
 
-	if dto.Bid != "UPW" && dto.Bid != "APW" && dto.Bid != "SIGN" && dto.Bid != "ABC" {
+	if dto.Bid != "UPW" && dto.Bid != "APW" && dto.Bid != "SIGN" && dto.Bid != "ABC" && dto.Bid != "SPW" {
 		result.SendFailed(c, result.ApiCode.MailBidError, result.ApiCode.GetMessage(result.ApiCode.MailBidError))
 		return
 	}
@@ -154,7 +157,11 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 		result.SendFailed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
 		return
 	}
-
+	// 添加 ilfd_s2 应用的业务类型验证
+	if claims.App_name == "ilfd_s2" && dto.Bid != "SPW" {
+		result.SendFailed(c, result.ApiCode.MailAppnameBidError, result.ApiCode.GetMessage(result.ApiCode.MailAppnameBidError))
+		return
+	}
 	//发送邮件
 	param_bid := dto.Bid
 	param_type := dto.Data.Type
@@ -163,7 +170,7 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 
 	title := ""
 	desc := ""
-
+	var vcode string
 	if param_bid == "UPW" {
 		if param_type == "3" {
 			if param_language == "zh-CN" {
@@ -267,14 +274,41 @@ func (s SysAdminServiceImpl) Send(c *gin.Context, dto dto.SendDto) {
 				desc = MailForAutoBuildFail(param_content)
 			}
 		}
-	}
+	} else if param_bid == "SPW" {
+		vcode, err = util.Generate6DigitCode()
+		if err != nil {
+			fmt.Println("生成验证码出错:", err)
+			return
+		}
+		if param_type == "1" {
+			if param_language == "zh-CN" {
+				title = "单次使用代码"
+				desc = MailForIlfdEmailVerifyCN(vcode)
+			} else {
+				title = "Your single-use code"
+				desc = MailForIlfdEmailVerify(vcode)
+			}
+		} else if param_type == "2" {
+			if param_language == "zh-CN" {
+				title = "iLFD 密码重置"
+				desc = MailForIlfdPasswordResetCN(vcode)
+			} else {
+				title = "iLFD password reset"
+				desc = MailForIlfdPasswordReset(vcode)
 
+			}
+		}
+	}
 	if desc == "Error parsing JSON" {
 		result.SendFailed(c, result.ApiCode.ERRMAILJSON, result.ApiCode.GetMessage(result.ApiCode.ERRMAILJSON))
 	}
 
 	if title != "" && desc != "" {
 		if SendMailApi(dto.Users, title, desc) {
+			if dto.Bid == "SPW" {
+				result.SendSuccessWithCode(c, vcode)
+				return
+			}
 			result.SendSuccess(c)
 		} else {
 			result.SendFailed(c, result.ApiCode.ERRMAILSEND, result.ApiCode.GetMessage(result.ApiCode.ERRMAILSEND))
@@ -574,6 +608,32 @@ func MailForAutoBuildFailCN(param string) (desc string) {
 func MailForAutoBuildFail(param string) (desc string) {
 	desc = "<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Your compilation task has been completed and compiled failed.<br></span>" +
 		"<span style=\"font-size:15px;font-family: Microsoft YaHei\"> Compilation result:【" + param + "】<br></span>"
+	return desc
+}
+func MailForIlfdEmailVerifyCN(vcode string) (desc string) {
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 亲爱的联想iLFD用户，我们收到了您设置邮箱的请求。<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 请输入一次性使用代码：" + vcode + "<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 谢谢！ <br></span>"
+	return desc
+}
+func MailForIlfdEmailVerify(vcode string) (desc string) {
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Dear Lenovo iLFD users, we have received your request to set up your mailbox.<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Please enter the one-time use code: " + vcode + "<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Thanks! <br></span>"
+	return desc
+}
+
+func MailForIlfdPasswordResetCN(vcode string) (desc string) {
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 尊敬的联想iLFD用户，我们收到了您重置 iLFD 密码的申请。<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 请输入重置代码：" + vcode + "<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> 谢谢！ <br></span>"
+	return desc
+}
+
+func MailForIlfdPasswordReset(vcode string) (desc string) {
+	desc = "<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Dear Lenovo iLFD users, we have received your request to reset your iLFD password.<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Please enter the reset code: " + vcode + "<br></span>" +
+		"<span style=\"font-size:25px;font-family: Microsoft YaHei\"> Thanks! <br></span>"
 	return desc
 }
 

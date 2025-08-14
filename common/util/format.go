@@ -9,18 +9,19 @@
 package util
 
 import (
+	crand "crypto/rand" // 添加这行
 	"encoding/hex"
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"github.com/gotomicro/ego/core/elog"
+	"github.com/ipipdotnet/ipdb-go"
+	"math/big"
 	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
-
-	"github.com/gotomicro/ego/core/elog"
-	"github.com/ipipdotnet/ipdb-go"
 )
 
 const (
@@ -210,7 +211,16 @@ func Map2Region(ip string) string {
 		 }
 	*/
 }
-
+func Generate6DigitCode() (string, error) {
+	// 生成 0~899999 的随机数
+	num, err := crand.Int(crand.Reader, big.NewInt(900000))
+	if err != nil {
+		return "", err
+	}
+	// +100000 保证是 6 位数
+	num.Add(num, big.NewInt(100000))
+	return fmt.Sprintf("%06d", num), nil // 格式化成 6 位，不足补0
+}
 func PasswordGenerate(length int) string {
 	baseStr := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}+-*/_=."
 	r := rand.New(rand.NewSource(time.Now().UnixNano() + rand.Int63()))

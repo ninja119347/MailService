@@ -4,13 +4,13 @@ package main
 import (
 	"admin-go-api/common/config"
 	_ "admin-go-api/docs"
-	// "admin-go-api/pkg/db"
+	"admin-go-api/pkg/db"
 	"admin-go-api/pkg/log"
 	"admin-go-api/pkg/redis"
 	"admin-go-api/router"
 	"context"
-	"fmt"
 	"crypto/tls"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
@@ -54,7 +54,7 @@ func main() {
 	// 启动 HTTPS 服务
 	go func() {
 		logger.Info("Starting HTTPS on " + config.Config.Server.Address)
-		if err := srv.ListenAndServeTLS("cert.pem", "key.pem"); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServeTLS("visuals.lenovo.com.pem", "visuals.lenovo.com.key"); err != nil && err != http.ErrServerClosed {
 			logger.Info(fmt.Sprintf("listen: %s\n", err))
 		}
 	}()

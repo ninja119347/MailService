@@ -23,5 +23,4 @@ func Cors() gin.HandlerFunc {
 		//处理请求
 		c.Next()
 	}
-
 }

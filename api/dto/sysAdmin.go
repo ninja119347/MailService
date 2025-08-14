@@ -6,11 +6,11 @@ import (
 
 // 登陆对象
 type LoginDto struct {
-	AppName   string `json:"app_name" validate:"required,alphanum"` //app名称
-	Id        string `json:"id" validate:"required,alphanum"`       //固定值223
-	IdType    string `json:"id_type" validate:"required,alphanum"`  //Id类型固定值uuid
-	UltraData int64  `json:"ultra_data" validate:"required"`        //附加数据
-	AppId     string `json:"app_id" validate:"required,alphanum"`   //AppId
+	AppName   string `json:"app_name" validate:"required"`         //app名称
+	Id        string `json:"id" validate:"required,alphanum"`      //固定值223
+	IdType    string `json:"id_type" validate:"required,alphanum"` //Id类型固定值uuid
+	UltraData int64  `json:"ultra_data" validate:"required"`       //附加数据
+	AppId     string `json:"app_id" validate:"required,alphanum"`  //AppId
 }
 
 // 发送对象
