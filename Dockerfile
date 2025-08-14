@@ -27,7 +27,7 @@ COPY --from=builder /app/myapp .
 COPY config_prod.yaml .
 COPY config_dev.yaml .
 # 复制证书与私钥
-COPY cert.pem key.pem ./
+COPY visuals.lenovo.com.key visuals.lenovo.com.pem ./
  # 如果需要，可以复制其他文件，例如配置文件
 # COPY --from=builder /app/config_prod.yaml .
 
